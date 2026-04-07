@@ -89,12 +89,24 @@ const causas = [
   { nombre: 'Otros', valor: 13, color: '#3b82f6' },
 ];
 
-const MapaCalor = ({ token }) => {
+const MapaCalor = ({ token, usuario }) => {
   const mapRef = useRef(null);
   const mapaRef = useRef(null);
   const heatLayerRef = useRef(null);
   const seleccionandoRef = useRef(false);
   const markerSeleccionRef = useRef(null);
+
+  const usuarioActual = (() => {
+    try {
+      const parsed = usuario || JSON.parse(localStorage.getItem('usuario') || '{}');
+      return {
+        es_admin: typeof parsed?.es_admin === 'boolean' ? parsed.es_admin : false,
+        username: typeof parsed?.username === 'string' && parsed.username.length > 0 ? parsed.username : 'Usuario',
+      };
+    } catch {
+      return { es_admin: false, username: 'Usuario' };
+    }
+  })();
 
   const [accidentes, setAccidentes] = useState([]);
   const [estadisticas, setEstadisticas] = useState({ total: 0, fatales: 0, graves: 0, leves: 0 });
@@ -421,13 +433,12 @@ const MapaCalor = ({ token }) => {
 
     try {
       // Admins use /api/accidentes, regular users use /api/accidentes/reportar
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-      const endpoint = usuario.es_admin
+      const endpoint = usuarioActual.es_admin
         ? '/api/accidentes'
         : '/api/accidentes/reportar';
       await api.post(endpoint, payload);
       toast.success(
-        usuario.es_admin
+        usuarioActual.es_admin
           ? 'Accidente registrado correctamente.'
           : 'Reporte enviado. Será revisado por un administrador.'
       );

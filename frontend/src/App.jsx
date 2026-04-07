@@ -151,17 +151,26 @@ export default function App() {
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUser  = localStorage.getItem('usuario');
-    if (storedToken && storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        const usuarioNormalizado = normalizeUser(parsed);
-        setToken(storedToken);
-        setUsuario(usuarioNormalizado);
-        setVistaActiva(usuarioNormalizado.es_admin ? 'dashboard' : 'mapa');
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuario');
+    if (storedToken) {
+      let usuarioNormalizado = null;
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          usuarioNormalizado = normalizeUser(parsed);
+        } catch {
+          localStorage.removeItem('usuario');
+        }
       }
+      if (!usuarioNormalizado) {
+        const decoded = parseJwt(storedToken);
+        usuarioNormalizado = normalizeUser({
+          es_admin: decoded?.es_admin,
+          username: decoded?.sub,
+        });
+      }
+      setToken(storedToken);
+      setUsuario(usuarioNormalizado);
+      setVistaActiva(usuarioNormalizado.es_admin ? 'dashboard' : 'mapa');
     }
   }, []);
 
