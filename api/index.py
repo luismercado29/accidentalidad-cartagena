@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 # Import and export the FastAPI app from backend
 from backend.main import app
 
-# This is the entry point that Vercel recognizes
-__all__ = ['app']
+# Vercel Function handler
+handler = app
 
 
