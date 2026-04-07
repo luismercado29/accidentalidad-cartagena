@@ -1,29 +1,20 @@
 {
   "version": 2,
+  "buildCommand": "cd frontend && npm ci && npm run build && cd ..",
+  "outputDirectory": "frontend/build",
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "runtime": "python3.11"
-      }
+      "use": "@vercel/python"
     }
   ],
-  "public": "frontend/build",
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/api/index.py"
     },
     {
-      "src": "/health",
-      "dest": "/api/index.py"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
+      "src": "/",
       "dest": "/index.html"
     }
   ]
