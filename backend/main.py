@@ -79,10 +79,18 @@ TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
 CARTAGENA_LAT, CARTAGENA_LNG = 10.3910, -75.4794
 
 # ---------------------------------------------------------------------------
-# Database setup
+# Database setup (graceful - try to connect but don't fail on import)
 # ---------------------------------------------------------------------------
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+try:
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    print(f"[OK] Database connected: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'configured'}")
+except Exception as _db_init_err:
+    print(f"[WARN] Database connection deferred: {_db_init_err}")
+    # Create dummy objects that will fail gracefully
+    engine = None
+    SessionLocal = None
+
 Base = declarative_base()
 
 # ---------------------------------------------------------------------------
@@ -157,26 +165,29 @@ class Geocerca(Base):
 
 
 # Create tables on startup (graceful - won't crash if DB is unavailable at import time)
-try:
-    from sqlalchemy import text as _text
-    Base.metadata.create_all(bind=engine)
-    # Auto-migration: add new columns if they don't exist (SQLite & PostgreSQL compatible)
-    with engine.connect() as _conn:
-        _migrations = [
-            "ALTER TABLE accidentes ADD COLUMN barrio VARCHAR(150)",
-            "ALTER TABLE accidentes ADD COLUMN fuente VARCHAR(20) DEFAULT 'manual'",
-        ]
-        for _sql in _migrations:
-            try:
-                _conn.execute(_text(_sql))
-                _conn.commit()
-            except Exception:
-                # Column probably already exists — ignore
-                pass
-    print("[OK] Base de datos inicializada correctamente.")
-except Exception as _db_err:
-    print(f"[WARN] No se pudo conectar a la base de datos al iniciar: {_db_err}")
-    print("   Asegurese de que PostgreSQL este corriendo antes de hacer peticiones.")
+if engine is not None:
+    try:
+        from sqlalchemy import text as _text
+        Base.metadata.create_all(bind=engine)
+        # Auto-migration: add new columns if they don't exist (SQLite & PostgreSQL compatible)
+        with engine.connect() as _conn:
+            _migrations = [
+                "ALTER TABLE accidentes ADD COLUMN barrio VARCHAR(150)",
+                "ALTER TABLE accidentes ADD COLUMN fuente VARCHAR(20) DEFAULT 'manual'",
+            ]
+            for _sql in _migrations:
+                try:
+                    _conn.execute(_text(_sql))
+                    _conn.commit()
+                except Exception:
+                    # Column probably already exists — ignore
+                    pass
+        print("[OK] Base de datos inicializada correctamente.")
+    except Exception as _db_err:
+        print(f"[WARN] No se pudo conectar a la base de datos al iniciar: {_db_err}")
+        print("   Asegurese de que PostgreSQL este corriendo antes de hacer peticiones.")
+else:
+    print("[WARN] Engine is None - database initialization skipped")
 
 # ---------------------------------------------------------------------------
 # Cartagena neighborhoods
@@ -405,9 +416,16 @@ def verify_password(plain: str, hashed: str) -> bool:
 app = FastAPI(title="API Accidentalidad Cartagena", version="3.0.0")
 security = HTTPBearer()
 
+# CORS configuration - allow Vercel, localhost, and any origin for now
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://accidentalidad-cartagena.vercel.app",
+        "https://*.vercel.app",
+        "*"  # Allow all origins in production
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -423,9 +441,47 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 
+# ---------------------------------------------------------------------------
+# Health Check Endpoints
+# ---------------------------------------------------------------------------
+@app.get("/health")
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint for Vercel and monitoring."""
+    try:
+        # Try to check database connection
+        if engine is not None and SessionLocal is not None:
+            db = SessionLocal()
+            db.execute("SELECT 1")
+            db.close()
+            db_status = "connected"
+        else:
+            db_status = "not_configured"
+        
+        return {
+            "status": "ok",
+            "service": "API Accidentalidad Cartagena",
+            "version": "3.0.0",
+            "database": db_status,
+            "message": "API is running and ready to accept requests"
+        }
+    except Exception as e:
+        return {
+            "status": "ok",
+            "service": "API Accidentalidad Cartagena",
+            "version": "3.0.0",
+            "database": "error",
+            "message": f"API is running but database check failed: {str(e)}"
+        }
+
+
 @app.on_event("startup")
 def migrar_reportes_en_agua():
     """Move any accident coordinates that fall in water to the nearest land barrio."""
+    if SessionLocal is None:
+        print("[SKIP] Database not configured - skipping water point migration")
+        return
+    
     try:
         db = SessionLocal()
         accidentes = db.query(Accidente).all()
