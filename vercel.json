@@ -1,26 +1,28 @@
 {
   "version": 2,
-  "buildCommand": "bash build.sh",
-  "outputDirectory": "frontend/build",
-  "public": "frontend/build",
   "builds": [
     {
+      "src": "frontend/build/index.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "runtime": "python3.11"
-      }
+      "use": "@vercel/python"
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/static/(.*)", "dest": "/static/$1" },
-    { "src": "/manifest.json", "dest": "/manifest.json" },
-    { "src": "/(.*)", "dest": "/index.html", "status": 200 }
-  ],
-  "env": {
-    "PYTHONUNBUFFERED": "1"
-  }
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/frontend/build/static/$1"
+    },
+    {
+      "src": ".*",
+      "dest": "/frontend/build/index.html"
+    }
+  ]
 }
 
