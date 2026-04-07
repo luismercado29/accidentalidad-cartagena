@@ -39,9 +39,9 @@ export default function QRReporte({ usuario, token, toast }) {
   const [urlBase, setUrlBase]   = useState(window.location.origin);
   const [urlCustom, setUrlCustom] = useState('');
   const [tamano, setTamano]     = useState(300);
-  const [colorFondo, setColorFondo]   = useState('ffffff');
+  const [colorFondo]            = useState('ffffff');
   const [colorFrente, setColorFrente] = useState('1f2937');
-  const [generado, setGenerado] = useState(false);
+  const [, setGenerado] = useState(false);
   const imgRef = useRef(null);
 
   const tipoActual = TIPOS_QR.find(t => t.id === tipoSeleccionado);

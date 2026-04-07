@@ -5,10 +5,10 @@ Chart.register(...registerables);
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export default function PanelPublico() {
-  const [stats, setStats]       = useState(null);
-  const [heatData, setHeatData] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError]       = useState(null);
+  const [stats, setStats]             = useState(null);
+  const [, setHeatData]               = useState([]);
+  const [cargando, setCargando]       = useState(true);
+  const [error, setError]             = useState(null);
 
   const canvasGravRef = useRef(null);
   const canvasMesRef  = useRef(null);

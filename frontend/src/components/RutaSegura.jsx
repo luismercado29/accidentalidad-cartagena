@@ -131,6 +131,7 @@ const RutaSegura = ({ token }) => {
     }
   }, []);
 
+  // eslint-disable-next-line no-use-before-define
   const seleccionarSugerencia = useCallback((sug, tipo) => {
     const lat = parseFloat(parseFloat(sug.lat).toFixed(6));
     const lng = parseFloat(parseFloat(sug.lon).toFixed(6));
@@ -141,14 +142,17 @@ const RutaSegura = ({ token }) => {
       setOrigen(punto);
       setBusquedaOrigen(nombre);
       setSugerenciasOrigen([]);
+      // eslint-disable-next-line no-use-before-define
       colocarMarcadorPunto(punto, 'origen', nombre);
     } else {
       setDestino(punto);
       setBusquedaDestino(nombre);
       setSugerenciasDestino([]);
+      // eslint-disable-next-line no-use-before-define
       colocarMarcadorPunto(punto, 'destino', nombre);
     }
-  }, []);
+  // eslint-disable-next-line no-use-before-define
+  }, [colocarMarcadorPunto]);
 
   // ─── Marker helpers ────────────────────────────────────────────────────────
   const colocarMarcadorPunto = useCallback((punto, tipo, label) => {

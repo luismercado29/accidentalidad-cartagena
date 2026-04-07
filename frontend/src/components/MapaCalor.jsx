@@ -107,7 +107,7 @@ const MapaCalor = ({ token }) => {
   const [mesSeleccionado, setMesSeleccionado] = useState(null);
   const [tabStats, setTabStats] = useState('estadisticas');
   const [mostrarClusters, setMostrarClusters] = useState(false);
-  const [puntosNegros, setPuntosNegros] = useState([]);
+  const [, setPuntosNegros] = useState([]);
   const clusterLayersRef = useRef([]);
 
   const { toasts, removeToast, toast } = useToast();
@@ -132,6 +132,7 @@ const MapaCalor = ({ token }) => {
     }
   }, []);
 
+  // eslint-disable-next-line no-use-before-define
   const seleccionarSugerencia = useCallback((sug) => {
     const lat = parseFloat(parseFloat(sug.lat).toFixed(6));
     const lng = parseFloat(parseFloat(sug.lon).toFixed(6));
@@ -147,9 +148,11 @@ const MapaCalor = ({ token }) => {
     // Pan map to selected location and show a temporary marker
     if (mapaRef.current) {
       mapaRef.current.setView([lat, lng], 16);
+      // eslint-disable-next-line no-use-before-define
       colocarMarkerSeleccion([lat, lng]);
     }
-  }, []);
+  // eslint-disable-next-line no-use-before-define
+  }, [colocarMarkerSeleccion]);
 
   // ─── Temporary selection marker ────────────────────────────────────────────
   const colocarMarkerSeleccion = useCallback((latlng) => {
