@@ -1,0 +1,11 @@
+# Ignore local development and build artifacts
+frontend/node_modules/
+frontend/build/
+venv/
+.venv/
+.git/
+*.pyc
+__pycache__/
+.DS_Store
+.vscode/
+.claude/
