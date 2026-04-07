@@ -451,8 +451,9 @@ async def health_check():
     try:
         # Try to check database connection
         if engine is not None and SessionLocal is not None:
+            from sqlalchemy import text
             db = SessionLocal()
-            db.execute("SELECT 1")
+            db.execute(text("SELECT 1"))
             db.close()
             db_status = "connected"
         else:
