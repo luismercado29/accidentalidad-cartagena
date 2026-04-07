@@ -98,12 +98,26 @@ const MapaCalor = ({ token, usuario }) => {
 
   const usuarioActual = (() => {
     try {
-      const parsed = usuario || JSON.parse(localStorage.getItem('usuario') || '{}');
-      return {
-        es_admin: typeof parsed?.es_admin === 'boolean' ? parsed.es_admin : false,
-        username: typeof parsed?.username === 'string' && parsed.username.length > 0 ? parsed.username : 'Usuario',
-      };
-    } catch {
+      let usuarioData = null;
+      if (usuario && typeof usuario === 'object' && usuario.username && typeof usuario.es_admin === 'boolean') {
+        usuarioData = usuario;
+      } else if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('usuario');
+        if (stored && typeof stored === 'string' && stored.length > 0) {
+          usuarioData = JSON.parse(stored);
+        }
+      }
+      
+      if (usuarioData && typeof usuarioData === 'object') {
+        const es_admin = usuarioData.es_admin === true || usuarioData.es_admin === 1 || usuarioData.es_admin === '1' || usuarioData.es_admin === 'true';
+        const username = (typeof usuarioData.username === 'string' && usuarioData.username.trim().length > 0) 
+          ? usuarioData.username.trim() 
+          : 'Usuario';
+        return { es_admin, username };
+      }
+      return { es_admin: false, username: 'Usuario' };
+    } catch (e) {
+      console.warn('[MapaCalor] Failed to load usuario:', e);
       return { es_admin: false, username: 'Usuario' };
     }
   })();

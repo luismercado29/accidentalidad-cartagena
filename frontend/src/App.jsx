@@ -124,10 +124,12 @@ function normalizeUser(user) {
   if (!user || typeof user !== 'object') {
     return { es_admin: false, username: 'Usuario' };
   }
-  return {
-    es_admin: typeof user.es_admin === 'boolean' ? user.es_admin : false,
-    username: typeof user.username === 'string' && user.username.length > 0 ? user.username : 'Usuario',
-  };
+  // Defensive: handle all falsy and truthy values for es_admin
+  const es_admin = user.es_admin === true || user.es_admin === 1 || user.es_admin === '1' || user.es_admin === 'true';
+  const username = (typeof user.username === 'string' && user.username.trim().length > 0) 
+    ? user.username.trim() 
+    : 'Usuario';
+  return { es_admin, username };
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -151,26 +153,34 @@ export default function App() {
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUser  = localStorage.getItem('usuario');
-    if (storedToken) {
+    if (storedToken && typeof storedToken === 'string' && storedToken.length > 0) {
       let usuarioNormalizado = null;
-      if (storedUser) {
+      if (storedUser && typeof storedUser === 'string' && storedUser.length > 0) {
         try {
           const parsed = JSON.parse(storedUser);
           usuarioNormalizado = normalizeUser(parsed);
-        } catch {
+        } catch (e) {
+          console.warn('[Auth Restore] Failed to parse stored user:', e);
           localStorage.removeItem('usuario');
         }
       }
       if (!usuarioNormalizado) {
         const decoded = parseJwt(storedToken);
-        usuarioNormalizado = normalizeUser({
-          es_admin: decoded?.es_admin,
-          username: decoded?.sub,
-        });
+        if (decoded && typeof decoded === 'object') {
+          usuarioNormalizado = normalizeUser({
+            es_admin: decoded.es_admin,
+            username: decoded.sub,
+          });
+        }
       }
-      setToken(storedToken);
-      setUsuario(usuarioNormalizado);
-      setVistaActiva(usuarioNormalizado.es_admin ? 'dashboard' : 'mapa');
+      if (usuarioNormalizado && typeof usuarioNormalizado === 'object' && usuarioNormalizado.username) {
+        setToken(storedToken);
+        setUsuario(usuarioNormalizado);
+        setVistaActiva(usuarioNormalizado.es_admin === true ? 'dashboard' : 'mapa');
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+      }
     }
   }, []);
 
@@ -243,27 +253,54 @@ export default function App() {
 
   // ── Login ──────────────────────────────────────────────────────────────────
   function handleLogin(newToken, newUser) {
-    let tok;
-    let usr;
+    let tok = null;
+    let usr = null;
 
-    if (typeof newToken === 'object' && newToken !== null && newToken.access_token) {
-      tok = newToken.access_token;
-      const decoded = parseJwt(tok);
-      usr = normalizeUser({
-        es_admin: newToken.es_admin ?? decoded?.es_admin,
-        username: newToken.username ?? decoded?.sub,
-      });
-    } else {
-      tok = newToken;
-      usr = normalizeUser(newUser);
+    try {
+      if (typeof newToken === 'object' && newToken !== null && newToken.access_token) {
+        // Standard response from /api/login or /api/registro
+        tok = newToken.access_token;
+        if (!tok || typeof tok !== 'string') {
+          throw new Error('Invalid token received from server');
+        }
+        
+        const decoded = parseJwt(tok);
+        const es_admin_from_response = newToken.es_admin === true || newToken.es_admin === 1 || newToken.es_admin === '1';
+        const es_admin_from_token = decoded?.es_admin === true || decoded?.es_admin === 1 || decoded?.es_admin === '1';
+        const username_from_response = (typeof newToken.username === 'string' && newToken.username.trim().length > 0) 
+          ? newToken.username.trim() 
+          : null;
+        const username_from_token = (typeof decoded?.sub === 'string' && decoded.sub.trim().length > 0) 
+          ? decoded.sub.trim() 
+          : null;
+        
+        usr = normalizeUser({
+          es_admin: es_admin_from_response || es_admin_from_token || false,
+          username: username_from_response || username_from_token || 'Usuario',
+        });
+      } else {
+        // Fallback for alternative login flow
+        tok = newToken;
+        usr = normalizeUser(newUser);
+      }
+
+      if (!tok || typeof tok !== 'string' || !usr || typeof usr !== 'object' || !usr.username) {
+        throw new Error('Login validation failed: invalid token or user data');
+      }
+
+      setToken(tok);
+      setUsuario(usr);
+      localStorage.setItem('token', tok);
+      localStorage.setItem('usuario', JSON.stringify(usr));
+      const startView = usr.es_admin === true ? 'dashboard' : 'mapa';
+      setVistaActiva(startView);
+      toast.success(`Bienvenido, ${usr.username}`);
+    } catch (err) {
+      console.error('[handleLogin] Error:', err);
+      toast.error(`Error en login: ${err.message}`);
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
     }
-
-    setToken(tok);
-    setUsuario(usr);
-    localStorage.setItem('token', tok);
-    localStorage.setItem('usuario', JSON.stringify(usr));
-    setVistaActiva(usr.es_admin ? 'dashboard' : 'mapa');
-    toast.success(`Bienvenido, ${usr.username}`);
   }
 
   // ── Logout ─────────────────────────────────────────────────────────────────
@@ -299,13 +336,14 @@ export default function App() {
 
   // ── Visible nav items (filter by role) ────────────────────────────────────
   const navVisibles = NAV_ITEMS.filter(item => {
-    if (item.adminOnly && !(usuario && usuario.es_admin)) return false;
-    if (item.userOnly  &&  (usuario && usuario.es_admin)) return false;
+    const isAdmin = usuario && usuario.es_admin === true;
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.userOnly && isAdmin) return false;
     return true;
   });
 
   // ── Unauthenticated: render Login ──────────────────────────────────────────
-  if (!usuario || !token) {
+  if (!usuario || !token || !usuario.username || typeof usuario.es_admin !== 'boolean') {
     return (
       <>
         <Login onLogin={handleLogin} toast={toast} />
@@ -388,8 +426,8 @@ export default function App() {
     }
   }
 
-  const userInitial = (usuario.username || 'U')[0].toUpperCase();
-  const userRole    = usuario.es_admin ? 'Admin' : 'Usuario';
+  const userInitial = ((usuario && usuario.username) || 'U')[0].toUpperCase();
+  const userRole    = (usuario && usuario.es_admin === true) ? 'Admin' : 'Usuario';
   const activeItem  = navVisibles.find(n => n.id === vistaActiva);
 
   return (
@@ -447,8 +485,8 @@ export default function App() {
             {userInitial}
           </div>
           <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{usuario.username}</div>
-            <span className={`badge badge-${usuario.es_admin ? 'admin' : 'usuario'}`}>
+            <div className="sidebar-user-name">{usuario?.username || 'Usuario'}</div>
+            <span className={`badge badge-${(usuario?.es_admin === true) ? 'admin' : 'usuario'}`}>
               {userRole}
             </span>
           </div>
@@ -558,12 +596,12 @@ export default function App() {
               style={{ cursor: 'pointer' }}
               title="Configuración y perfil"
             >
-              <div className="user-avatar" aria-hidden="true" title={usuario.username}>
+              <div className="user-avatar" aria-hidden="true" title={usuario?.username || 'Usuario'}>
                 {userInitial}
               </div>
               <div className="user-info">
-                <span className="user-name">{usuario.username}</span>
-                <span className={`badge badge-${usuario.es_admin ? 'admin' : 'usuario'}`}>
+                <span className="user-name">{usuario?.username || 'Usuario'}</span>
+                <span className={`badge badge-${(usuario?.es_admin === true) ? 'admin' : 'usuario'}`}>
                   {userRole}
                 </span>
               </div>
