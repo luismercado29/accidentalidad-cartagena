@@ -62,13 +62,6 @@ function estadoBadge(estado) {
   }
 }
 
-function gravedadClass(g) {
-  const v = (g || '').toLowerCase();
-  if (v === 'fatal') return 'gravedad-fatal';
-  if (v === 'grave') return 'gravedad-grave';
-  return 'gravedad-leve';
-}
-
 // ═════════════════════════════════════════════════════════════════════════════
 export default function FuentesExternas({ usuario, token, toast }) {
   const [accidentesExternos,  setAccidentesExternos]  = useState([]);
