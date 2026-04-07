@@ -13,7 +13,6 @@ venv/
 
 # Node
 frontend/node_modules/
-frontend/build/
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -22,6 +21,7 @@ yarn-error.log*
 # IDE / OS
 .vscode/
 .DS_Store
+
 
 # Local hidden folders
 .claude/
