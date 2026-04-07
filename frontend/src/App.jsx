@@ -110,6 +110,26 @@ function notifEmoji(tipo) {
   }
 }
 
+function parseJwt(token) {
+  try {
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeUser(user) {
+  if (!user || typeof user !== 'object') {
+    return { es_admin: false, username: 'Usuario' };
+  }
+  return {
+    es_admin: typeof user.es_admin === 'boolean' ? user.es_admin : false,
+    username: typeof user.username === 'string' && user.username.length > 0 ? user.username : 'Usuario',
+  };
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 //  Main App
 // ════════════════════════════════════════════════════════════════════════════
@@ -134,9 +154,10 @@ export default function App() {
     if (storedToken && storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
+        const usuarioNormalizado = normalizeUser(parsed);
         setToken(storedToken);
-        setUsuario(parsed);
-        setVistaActiva(parsed.es_admin ? 'dashboard' : 'mapa');
+        setUsuario(usuarioNormalizado);
+        setVistaActiva(usuarioNormalizado.es_admin ? 'dashboard' : 'mapa');
       } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('usuario');
@@ -213,17 +234,21 @@ export default function App() {
 
   // ── Login ──────────────────────────────────────────────────────────────────
   function handleLogin(newToken, newUser) {
-    // Support both calling conventions:
-    // handleLogin(tokenObj)  — legacy shape from old Login
-    // handleLogin(str, obj)  — new shape
-    let tok, usr;
+    let tok;
+    let usr;
+
     if (typeof newToken === 'object' && newToken !== null && newToken.access_token) {
       tok = newToken.access_token;
-      usr = { es_admin: newToken.es_admin, username: newToken.username };
+      const decoded = parseJwt(tok);
+      usr = normalizeUser({
+        es_admin: newToken.es_admin ?? decoded?.es_admin,
+        username: newToken.username ?? decoded?.sub,
+      });
     } else {
       tok = newToken;
-      usr = newUser;
+      usr = normalizeUser(newUser);
     }
+
     setToken(tok);
     setUsuario(usr);
     localStorage.setItem('token', tok);
