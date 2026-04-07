@@ -1,7 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
+  "buildCommand": "bash build.sh",
   "outputDirectory": "frontend/build",
+  "public": "frontend/build",
   "builds": [
     {
       "src": "api/index.py",
@@ -15,6 +16,7 @@
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.py" },
     { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/(.*)", "dest": "/index.html", "status": 200 }
   ],
   "env": {
