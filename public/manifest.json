@@ -1,0 +1,49 @@
+{
+  "short_name": "CrashMap",
+  "name": "CrashMap Cartagena — Sistema de Accidentalidad Vial",
+  "description": "Plataforma de análisis y gestión de accidentalidad vial para Cartagena de Indias",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1a3a5c",
+  "background_color": "#0d1b2a",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities", "navigation"],
+  "lang": "es-CO",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Reportar Accidente",
+      "short_name": "Reportar",
+      "description": "Reportar un accidente de tránsito",
+      "url": "/#reportar",
+      "icons": [{ "src": "favicon.ico", "sizes": "64x64" }]
+    },
+    {
+      "name": "Mapa de Calor",
+      "short_name": "Mapa",
+      "description": "Ver mapa de accidentalidad en tiempo real",
+      "url": "/#mapa",
+      "icons": [{ "src": "favicon.ico", "sizes": "64x64" }]
+    }
+  ]
+}
