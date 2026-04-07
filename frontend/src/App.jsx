@@ -328,6 +328,16 @@ export default function App() {
     }
   }
 
+  // ── Unauthenticated: render Login (GUARD CHECK FIRST) ─────────────────────
+  if (!usuario || !token || !usuario?.username || typeof usuario?.es_admin !== 'boolean') {
+    return (
+      <>
+        <Login onLogin={handleLogin} toast={toast} />
+        <Toast toasts={toasts} onRemove={removeToast} />
+      </>
+    );
+  }
+
   // ── Nav click ──────────────────────────────────────────────────────────────
   function handleNavClick(id) {
     setVistaActiva(id);
@@ -341,16 +351,6 @@ export default function App() {
     if (item.userOnly && isAdmin) return false;
     return true;
   });
-
-  // ── Unauthenticated: render Login ──────────────────────────────────────────
-  if (!usuario || !token || !usuario?.username || typeof usuario?.es_admin !== 'boolean') {
-    return (
-      <>
-        <Login onLogin={handleLogin} toast={toast} />
-        <Toast toasts={toasts} onRemove={removeToast} />
-      </>
-    );
-  }
 
   // ── Common props for content components ───────────────────────────────────
   const commonProps = { usuario, token, toast };
