@@ -343,7 +343,7 @@ export default function App() {
   });
 
   // ── Unauthenticated: render Login ──────────────────────────────────────────
-  if (!usuario || !token || !usuario.username || typeof usuario.es_admin !== 'boolean') {
+  if (!usuario || !token || !usuario?.username || typeof usuario?.es_admin !== 'boolean') {
     return (
       <>
         <Login onLogin={handleLogin} toast={toast} />
