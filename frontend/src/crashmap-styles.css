@@ -1,0 +1,942 @@
+/* ==============================================
+   ESTILOS CRASHMAP - Diseño de la imagen
+   ============================================== */
+
+/* Layout Principal CRASHMAP */
+.crashmap-layout {
+  display: grid;
+  grid-template-columns: 80px 1fr 380px;
+  grid-template-rows: 1fr;  /* force row to fill exact container height */
+  gap: 0;
+  height: calc(100vh - 140px);
+  max-height: calc(100vh - 140px);
+  background: #e5e7eb;
+  overflow: hidden; /* evita que el mapa salga del recuadro al hacer scroll */
+}
+
+/* Sidebar Izquierdo - Timeline */
+.crashmap-sidebar-left {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  border-right: 1px solid #e5e7eb;
+}
+
+.crashmap-logo {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.logo-icon {
+  width: 50px;
+  height: 50px;
+  background: #4F46E5;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto 0.5rem;
+}
+
+.logo-text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: 1px;
+}
+
+/* Timeline de Meses */
+.timeline-meses {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.mes-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.mes-item:hover {
+  background: #f3f4f6;
+}
+
+.mes-item.active {
+  background: #EEF2FF;
+}
+
+.mes-barras {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 30px;
+}
+
+.barra {
+  width: 4px;
+  background: linear-gradient(180deg, #FF9800 0%, #FFC107 100%);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.barra-0 { height: 15px; }
+.barra-1 { height: 22px; }
+.barra-2 { height: 28px; }
+.barra-3 { height: 18px; }
+.barra-4 { height: 25px; }
+
+.mes-nombre {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.mes-item.active .mes-nombre {
+  color: #4F46E5;
+}
+
+.btn-export-pdf {
+  width: 100%;
+  padding: 0.7rem;
+  background: #4F46E5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 1rem;
+  transition: all 0.3s;
+}
+
+.btn-export-pdf:hover {
+  background: #4338CA;
+}
+
+/* Mapa Central CRASHMAP */
+.crashmap-main {
+  position: relative;
+  background: #f9fafb;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* contiene el canvas de Leaflet dentro del grid cell */
+}
+
+.map-header {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1000;
+  background: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: #6b7280;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.mapa-crashmap {
+  width: 100%;
+  flex: 1;          /* fill remaining height in flex column parent */
+  min-height: 480px; /* garantiza canvas con altura > 0 para leaflet.heat */
+}
+
+.btn-reportar-flotante {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: #4F46E5;
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  box-shadow: 0 8px 20px rgba(79,70,229,0.4);
+  transition: all 0.3s;
+}
+
+.btn-reportar-flotante:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(79,70,229,0.5);
+}
+
+/* Sidebar Derecho - Estadísticas */
+.crashmap-sidebar-right {
+  background: white;
+  border-left: 1px solid #e5e7eb;
+  /* explicit max-height bounds the element so overflow-y creates a real
+     scroll container; overflow-y:scroll always shows the bar. */
+  min-height: 0;
+  max-height: calc(100vh - 140px);
+  overflow-y: scroll;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+}
+/* Inner scroll wrapper inside the sidebar */
+.crashmap-sidebar-right-inner {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.stats-tabs-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.8rem;
+}
+
+.stat-tab {
+  flex: 1;
+  padding: 0.6rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+}
+
+.stat-tab:hover {
+  background: #f3f4f6;
+}
+
+.stat-tab.active {
+  background: #EEF2FF;
+  color: #4F46E5;
+}
+
+/* Cards de Estadísticas */
+.stats-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.stats-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.stats-icon-circle {
+  width: 36px;
+  height: 36px;
+  background: #4F46E5;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.stats-title {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.stats-dropdown {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* Grid de Estadísticas */
+.stats-grid-main {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+}
+
+.stat-box {
+  text-align: center;
+  padding: 0.8rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.3rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Sección de Causas */
+.causas-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.causas-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.causas-lista-crashmap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.causa-item-crashmap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.causa-barra-container {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.causa-barra-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.causa-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.causa-nombre-crashmap {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.causa-valor {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Modal CRASHMAP */
+.modal-overlay-crashmap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s;
+}
+
+.modal-crashmap {
+  background: white;
+  border-radius: 16px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: slideUp 0.3s;
+}
+
+.modal-header-crashmap {
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-header-crashmap h2 {
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.btn-cerrar-crashmap {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.btn-cerrar-crashmap:hover {
+  background: rgba(255,255,255,0.3);
+  transform: rotate(90deg);
+}
+
+/* Formulario CRASHMAP */
+.form-crashmap {
+  padding: 2rem;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group-crashmap {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group-crashmap label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-group-crashmap input,
+.form-group-crashmap select,
+.form-group-crashmap textarea {
+  padding: 0.7rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.form-group-crashmap input:focus,
+.form-group-crashmap select:focus,
+.form-group-crashmap textarea:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+
+.form-group-crashmap.checkboxes {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.btn-seleccionar-mapa {
+  width: 100%;
+  padding: 0.8rem;
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: 2px dashed #4F46E5;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.btn-seleccionar-mapa:hover {
+  background: #4F46E5;
+  color: white;
+  border-style: solid;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e5e7eb;
+}
+
+.btn-cancelar-crashmap {
+  flex: 1;
+  padding: 0.8rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancelar-crashmap:hover {
+  background: #e5e7eb;
+}
+
+.btn-enviar-crashmap {
+  flex: 2;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-enviar-crashmap:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(79,70,229,0.4);
+}
+
+/* Gestión de Reportes Admin */
+.dashboard-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-tab {
+  padding: 0.6rem 1.1rem;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-tab:hover {
+  background: #eef2ff;
+  border-color: #6366f1;
+  color: #4f46e5;
+}
+
+.btn-tab.active {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+}
+
+.gestion-reportes {
+  margin-top: 2rem;
+}
+
+.reportes-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.reporte-tab {
+  padding: 0.8rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6b7280;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reporte-tab.active {
+  color: #4F46E5;
+  border-bottom-color: #4F46E5;
+}
+
+.sin-reportes {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.sin-reportes span {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.sin-reportes h3 {
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.sin-reportes p {
+  color: #6b7280;
+}
+
+.reportes-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.reporte-card-admin {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+
+.reporte-card-admin:hover {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.reporte-header-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.reporte-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.reporte-badge.pendiente {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.reporte-fecha {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.reporte-body-admin {
+  margin-bottom: 1.5rem;
+}
+
+.reporte-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.info-item-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 0.9rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.info-value.gravedad-leve {
+  color: #059669;
+}
+
+.info-value.gravedad-grave {
+  color: #D97706;
+}
+
+.info-value.gravedad-fatal {
+  color: #DC2626;
+}
+
+.reporte-descripcion-admin {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.reporte-descripcion-admin strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-size: 0.85rem;
+}
+
+.reporte-descripcion-admin p {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.reporte-acciones-admin {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+}
+
+.btn-aprobar-admin,
+.btn-editar-admin,
+.btn-rechazar-admin {
+  padding: 0.7rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+
+.btn-aprobar-admin {
+  background: #10B981;
+  color: white;
+}
+
+.btn-aprobar-admin:hover {
+  background: #059669;
+}
+
+.btn-editar-admin {
+  background: #4F46E5;
+  color: white;
+}
+
+.btn-editar-admin:hover {
+  background: #4338CA;
+}
+
+.btn-rechazar-admin {
+  background: #EF4444;
+  color: white;
+}
+
+.btn-rechazar-admin:hover {
+  background: #DC2626;
+}
+
+/* Tabla de Reportes */
+.todos-reportes-section {
+  margin-top: 3rem;
+}
+
+.todos-reportes-section h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+}
+
+.tabla-reportes {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.tabla-reportes table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-reportes thead {
+  background: #f9fafb;
+}
+
+.tabla-reportes th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tabla-reportes td {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+  color: #1f2937;
+}
+
+.tabla-reportes tbody tr:hover {
+  background: #f9fafb;
+}
+
+.badge-gravedad {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-gravedad.leve {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-gravedad.grave {
+  background: #FED7AA;
+  color: #92400E;
+}
+
+.badge-gravedad.fatal {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.btn-icon-admin {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.3rem;
+  margin: 0 0.2rem;
+  transition: all 0.2s;
+}
+
+.btn-icon-admin:hover {
+  transform: scale(1.2);
+}
+
+.btn-icon-admin.danger:hover {
+  opacity: 0.7;
+}
+
+/* Responsive CRASHMAP */
+@media (max-width: 1400px) {
+  .crashmap-layout {
+    grid-template-columns: 80px 1fr 320px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .crashmap-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .crashmap-sidebar-left {
+    display: none;
+  }
+
+  .crashmap-sidebar-right {
+    border-left: none;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .crashmap-main {
+    height: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-crashmap {
+    width: 95%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .reporte-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reporte-acciones-admin {
+    grid-template-columns: 1fr;
+  }
+}
