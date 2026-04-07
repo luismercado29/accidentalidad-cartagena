@@ -1,22 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm ci && npm run build && cd ..",
-  "outputDirectory": "frontend/build",
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
-    }
-  ]
+  "buildCommand": "npm install --prefix frontend && npm run build --prefix frontend",
+  "outputDirectory": "frontend/build"
 }
 
