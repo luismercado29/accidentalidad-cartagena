@@ -1,0 +1,10 @@
+{
+  "name": "accidentalidad-cartagena",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de Analisis de Accidentalidad - Cartagena",
+  "comment": "Este package.json existe para que Vercel monte el build de React en la raiz del despliegue. Si se apunta static-build a frontend/package.json, la salida queda bajo /frontend/ y las rutas absolutas que genera CRA (/static/js/...) dejan de resolver.",
+  "scripts": {
+    "vercel-build": "cd frontend && npm install --legacy-peer-deps && CI=false npm run build"
+  }
+}
