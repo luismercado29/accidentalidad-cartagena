@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { api } from '../api';
+import { api, API_BASE } from '../api';
 
 // ─── CSV template data ────────────────────────────────────────────────────────
 const TEMPLATE_HEADERS = [
@@ -146,7 +146,7 @@ export default function ImportarDatos({ usuario, token, toast }) {
 
       const tkn = localStorage.getItem('token');
       const res = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/importar/excel`,
+        `${API_BASE}/api/importar/excel`,
         {
           method: 'POST',
           headers: { Authorization: `Bearer ${tkn}` },

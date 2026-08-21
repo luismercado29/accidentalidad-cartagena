@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Sistema de Análisis de Accidentalidad - Cartagena",
   "main": "index.js",
+  "comment_proxy": "Solo lo usa el servidor de desarrollo: redirige /api al backend local para que API_BASE pueda ser relativa igual que en produccion.",
+  "proxy": "http://localhost:8000",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

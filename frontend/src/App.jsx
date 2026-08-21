@@ -9,7 +9,7 @@ import RutaSegura from './components/RutaSegura';
 import Toast from './components/Toast';
 import PerfilPanel from './components/PerfilPanel';
 import { useToast } from './hooks/useToast';
-import api from './api';
+import api, { API_BASE } from './api';
 
 // Lazy-load optional components that may not exist yet
 let ImportarDatos   = null;
@@ -216,7 +216,14 @@ export default function App() {
 
     // WebSocket real-time updates
     try {
-      const wsBase = (process.env.REACT_APP_API_URL || 'http://localhost:8000').replace(/^http/, 'ws');
+      // Un WebSocket necesita una URL absoluta, asi que cuando API_BASE es
+      // relativa se arma a partir del dominio actual (wss si la web va por
+      // https). Nota: las funciones serverless de Vercel no mantienen
+      // conexiones WebSocket, por lo que en ese despliegue esto no conectara y
+      // la app se queda con el sondeo periodico de notificaciones.
+      const wsBase = API_BASE
+        ? API_BASE.replace(/^http/, 'ws')
+        : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
       const ws = new WebSocket(`${wsBase}/ws/notificaciones`);
       wsRef.current = ws;
       ws.onmessage = (e) => {

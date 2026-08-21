@@ -1,4 +1,18 @@
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Base de la API.
+//
+// Create React App incrusta las variables REACT_APP_* en tiempo de COMPILACION.
+// Antes el valor por defecto era 'http://localhost:8000', asi que si la variable
+// no estaba definida al construir, el bundle publicado terminaba apuntando a la
+// maquina de quien abria la pagina y ninguna peticion llegaba a la API.
+//
+// Ahora el valor por defecto es una cadena vacia: las peticiones salen como
+// rutas relativas (/api/...) y las resuelve el mismo dominio que sirve la web,
+// que es como esta desplegado en Vercel.
+//
+// En desarrollo, el proxy declarado en package.json redirige /api al backend
+// local. Definir REACT_APP_API_URL sigue funcionando si se necesita apuntar a
+// un backend en otro dominio.
+export const API_BASE = process.env.REACT_APP_API_URL || '';
 
 const apiFetch = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');

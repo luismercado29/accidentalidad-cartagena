@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+import { API_BASE as API } from '../api';
 
 // ── Colores semáforo ──────────────────────────────────────────────────────────
 const SEMAFORO = {

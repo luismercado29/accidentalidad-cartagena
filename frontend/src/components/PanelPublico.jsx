@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
+import { API_BASE } from '../api';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+Chart.register(...registerables);
 
 export default function PanelPublico() {
   const [stats, setStats]             = useState(null);

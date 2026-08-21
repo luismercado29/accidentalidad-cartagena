@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import api from '../api';
+import api, { API_BASE } from '../api';
 
 const ESTADO_CFG = {
   sin_intervenir: { label: 'Sin Intervenir', bg: '#fed7d7', color: '#9b2c2c', icon: '🔴' },
@@ -111,7 +111,7 @@ export default function PuntosNegros({ usuario, toast }) {
     setCargando(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/puntos-negros/${puntoId}/foto`, {
+      const res = await fetch(`${API_BASE}/api/puntos-negros/${puntoId}/foto`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -242,7 +242,7 @@ export default function PuntosNegros({ usuario, toast }) {
                         </button>
                         {p.foto_url && (
                           <a
-                            href={`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}${p.foto_url}`}
+                            href={`${API_BASE}${p.foto_url}`}
                             target="_blank"
                             rel="noreferrer"
                             style={{ fontSize: '0.75rem', padding: '3px 10px', textDecoration: 'none', color: 'var(--accent)' }}

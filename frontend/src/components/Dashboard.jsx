@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chart, registerables } from 'chart.js';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import api from '../api';
+import api, { API_BASE } from '../api';
 Chart.register(...registerables);
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -1232,7 +1232,7 @@ export default function Dashboard({ usuario, token, toast }) {
                   try {
                     const token = localStorage.getItem('token');
                     const ahora = new Date();
-                    const url = `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/informes/pdf-mensual?anio=${ahora.getFullYear()}&mes=${ahora.getMonth() + 1}`;
+                    const url = `${API_BASE}/api/informes/pdf-mensual?anio=${ahora.getFullYear()}&mes=${ahora.getMonth() + 1}`;
                     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
                     if (!res.ok) throw new Error('Error al generar');
                     const blob = await res.blob();
