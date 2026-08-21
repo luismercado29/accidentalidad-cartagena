@@ -1,14 +1,26 @@
-/* CrashMap Cartagena — Service Worker v4.0
- * Estrategia: Cache-first para assets estáticos, Network-first para API
+/* CrashMap Cartagena — Service Worker v5
+ *
+ * Estrategia:
+ *   - Navegaciones (HTML): network-first. NUNCA cache-first.
+ *   - Assets con hash en el nombre (/static/...): cache-first, son inmutables.
+ *   - API: network-first.
+ *
+ * Por qué cambió: antes el HTML se servía cache-first, así que tras cada
+ * despliegue el index.html cacheado seguía pidiendo el bundle anterior, que ya
+ * no existe en el servidor, y la página salía en blanco. Solo se arreglaba con
+ * Ctrl+Shift+R, que salta el service worker.
+ *
+ * Además el nombre de la caché era fijo, y como el handler de activate solo
+ * borra las cachés con nombre distinto, la vieja no se limpiaba nunca. Al subir
+ * la versión aquí, la caché anterior se elimina al activarse esta.
  */
 
-const CACHE_NAME = 'crashmap-v4';
+const CACHE_NAME = 'crashmap-v5';
+
+// Solo recursos que existen de verdad en el build. La lista anterior incluía
+// rutas del servidor de desarrollo (main.chunk.js, bundle.js) que no existen en
+// producción y, como cache.addAll es atómico, hacían fallar el precacheo entero.
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/static/js/main.chunk.js',
-  '/static/js/bundle.js',
-  '/static/css/main.chunk.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
 ];
 
@@ -70,7 +82,32 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Assets estáticos: Cache-first
+  // Navegaciones (el HTML de la página): network-first.
+  //
+  // Esto es lo que impide quedarse pegado en una versión vieja: el index.html
+  // referencia bundles con hash en el nombre, así que servirlo desde caché tras
+  // un despliegue apunta a archivos que ya no existen. Solo se recurre a la
+  // caché si no hay red.
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copia = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copia));
+          }
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // Resto de assets: cache-first.
+  //
+  // Es seguro porque los archivos bajo /static/ llevan un hash en el nombre: si
+  // el contenido cambia, cambia la URL, así que nunca se sirve una versión
+  // obsoleta bajo el mismo nombre.
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
@@ -82,12 +119,7 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return response;
-      }).catch(() => {
-        // Fallback para navegación offline
-        if (request.destination === 'document') {
-          return caches.match('/index.html');
-        }
-      });
+      }).catch(() => undefined);
     })
   );
 });
