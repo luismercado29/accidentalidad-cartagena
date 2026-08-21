@@ -1,30 +1,21 @@
-import sys
+"""Punto de entrada de la funcion serverless de Vercel.
+
+Vercel busca una variable llamada `app`, `application` o `handler` en el nivel
+superior de este archivo. La importacion debe quedar en el nivel superior y sin
+envolverse en un try/except: si se anida, el analisis no la reconoce y el
+despliegue falla con
+"Could not find a top-level app, application, or handler".
+"""
+
 import os
+import sys
 
-# Debug environment
-print(f"[DEBUG] Current working directory: {os.getcwd()}")
-print(f"[DEBUG] Python path: {sys.path[:2]}")
-print(f"[DEBUG] Environment variables count: {len(os.environ)}")
-db_url = os.getenv("DATABASE_URL")
-if db_url:
-    print(f"[DEBUG] DATABASE_URL is set: {db_url.split('@')[0]}@...")
-else:
-    print(f"[DEBUG] DATABASE_URL is NOT set")
+# backend/ vive un nivel arriba de api/, hay que ponerlo en el path para poder
+# importarlo. Se incluye en el paquete via includeFiles en vercel.json.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Ensure backend is in path for Vercel Functions
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from backend.main import app
 
-# Import and export the FastAPI app from backend
-try:
-    from backend.main import app
-    print("[DEBUG] FastAPI app imported successfully")
-except Exception as import_err:
-    print(f"[ERROR] Failed to import app: {import_err}")
-    import traceback
-    traceback.print_exc()
-    raise
-
-# Vercel Function handler
+# Alias para cubrir cualquiera de los nombres que Vercel acepta.
+application = app
 handler = app
-
-
