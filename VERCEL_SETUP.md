@@ -1,94 +1,114 @@
-# Setup de Vercel para Accidentalidad Cartagena
+# Despliegue en Vercel + Neon
 
-## ✅ Estado Actual
-- **Frontend**: Desplegado en Vercel ✅
-- **Backend API**: Configurado pero requiere base de datos
-- **URL**: https://accidentalidad-cartagena.vercel.app
+Guia de referencia para desplegar este proyecto. Reemplaza a las instrucciones
+anteriores, que describian una configuracion que no funcionaba.
 
-## 🔧 Pasos para Completar el Setup
+## Que estaba fallando
 
-### Paso 1: Configurar Base de Datos PostgreSQL en la Nube
+El despliegue respondia HTTP 200, pero la aplicacion no servia para nada:
 
-Elige UNA de estas opciones:
+1. **La API nunca respondia.** El `vercel.json` anterior terminaba con la regla
+   `{"src": "/(.*)", "dest": "/index.html"}`, que capturaba tambien `/api/*`.
+   Una llamada a `/api/health` devolvia el HTML de la pagina en lugar de JSON,
+   asi que el frontend no podia traer ningun dato.
 
-#### Opción A: Vercel Postgres (Recomendado)
-1. Ve a https://vercel.com/dashboard
-2. Selecciona el proyecto "accidentalidad-cartagena"
-3. Ir a "Storage" → "Create Database" → Postgres
-4. Seguir las instrucciones para crear la BD
-5. Copiar la `DATABASE_URL` del panel
+2. **El frontend servido estaba viejo.** No habia `buildCommand`, por lo que
+   Vercel nunca recompilaba: publicaba la carpeta `public/` de la raiz, una
+   copia manual y desactualizada del build. En produccion se servia
+   `main.a1a99712.js` mientras el codigo fuente generaba `main.a8a0b035.js`.
 
-#### Opción B: Supabase (Alternativa Gratis)
-1. Ir a https://supabase.com
-2. Crear una cuenta gratuita
-3. Crear un nuevo proyecto
-4. En "Settings" → "Database" → copiar la URL de conexión
-5. Asegurarse que el puerto sea 5432
+3. **La funcion de Python no cabia.** `api/requirements.txt` incluia
+   `scikit-learn`, que arrastra `scipy`. Con eso las dependencias pesaban
+   369 MB y el limite de una funcion serverless de Vercel es 250 MB
+   descomprimidos.
 
-#### Opción C: Railway.app
-1. Ir a https://railway.app
-2. Crear cuenta
-3. Nuevo proyecto → Add service → PostgreSQL
-4. Copiar `DATABASE_URL` desde variables
+## Como quedo configurado
 
-### Paso 2: Agregar Variables de Entorno a Vercel
+`vercel.json` ahora:
 
-En Vercel Dashboard:
-1. Ir a proyecto → Settings → Environment Variables
-2. Agregar estas variables:
+- Compila el frontend en cada despliegue (`buildCommand`) y publica
+  `frontend/build`, por lo que no puede volver a quedar desactualizado.
+- Usa `rewrites` con `/((?!api/).*)`, que deja pasar `/api/*` hacia la funcion
+  de Python y manda el resto a `index.html` para el enrutado del SPA.
 
-```
-DATABASE_URL = postgresql+psycopg2://usuario:password@host:5432/accidentalidad_ctg
-SECRET_KEY = tu-clave-secreta-muy-segura
-ACCESS_TOKEN_EXPIRE_HOURS = 24
-MODEL_PATH = backend/modelo_riesgo.pt
-OPENWEATHER_API_KEY = tu-api-key
-ANTHROPIC_API_KEY = tu-api-key
-TWILIO_ACCOUNT_SID = tu-sid
-TWILIO_AUTH_TOKEN = tu-token
-```
+La carpeta `public/` de la raiz se elimino por ser una copia obsoleta del
+build. Ojo: `frontend/public/` es distinta, es la plantilla de origen de
+Create React App y debe conservarse.
 
-### Paso 3: Inicializar la Base de Datos en Vercel
+`frontend/build/` y `backend/accidentes.db` ya no se versionan.
 
-Una vez agregadas las variables, ejecuta:
+## Variables de entorno en Vercel
 
-```bash
-# Opción 1: Ejecutar script de setup remoto
-npx vercel env pull
-python backend/setup_database.py
+En Settings -> Environment Variables:
 
-# Opción 2: Usar curl para ejecutar endpoint de setup
-curl https://accidentalidad-cartagena.vercel.app/api/health
-```
+| Variable | Obligatoria | Notas |
+|---|---|---|
+| `DATABASE_URL` | Si | Cadena de Neon. Ver formato abajo. |
+| `SECRET_KEY` | Si | Firma los JWT. Generar una nueva, no reutilizar ninguna anterior. |
+| `ACCESS_TOKEN_EXPIRE_HOURS` | No | Por defecto 24. |
+| `OPENWEATHER_API_KEY` | No | Sin ella se desactiva el clima. |
+| `ANTHROPIC_API_KEY` | No | Sin ella se desactiva el chat con IA. |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | No | Sin ellas se desactiva WhatsApp. |
 
-### Paso 4: Verificar que Todo Funciona
+Generar `SECRET_KEY`:
 
 ```bash
-# Verificar backend
-curl https://accidentalidad-cartagena.vercel.app/api/health
-
-# Ver logs en Vercel Dashboard
-# Proyecto → Deployments → Logs
+python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-## 🚀 Cómo Funciona Ahora
+### Formato de DATABASE_URL para Neon
 
-- **Frontend React**: Servido como sitio estático desde Vercel
-- **Backend FastAPI**: Corriendo en Vercel Functions (Python)
-- **Base de Datos**: PostgreSQL en la nube
-- **API Routes**: `/api/*` se enruta a los endpoints del backend
+El backend usa SQLAlchemy con psycopg2, asi que el prefijo debe ser
+`postgresql+psycopg2://` y no el `postgresql://` que entrega Neon por defecto:
 
-## 📝 Notas Importantes
+```
+postgresql+psycopg2://USUARIO:PASSWORD@HOST.neon.tech/BASEDATOS?sslmode=require
+```
 
-- El modelo de ML (`modelo_riesgo.pt`) debe estar disponible en el backend
-- Las variables de entorno se pueden actualizar sin redeploy
-- Vercel Functions tienen límite de 10 segundos por request (suficiente para la mayoría de operaciones)
-- Los archivos estáticos se cachean en Vercel's CDN
+Neon exige `sslmode=require`.
 
-## 🔗 URLs Útiles
+## Funcionalidad reducida en Vercel
 
-- Dashboard: https://vercel.com/dashboard
-- Proyecto: https://vercel.com/dashboard/projects/accidentalidad-cartagena
-- App: https://accidentalidad-cartagena.vercel.app
-- API: https://accidentalidad-cartagena.vercel.app/api
+Para que la funcion cupiera en 250 MB se quito `scikit-learn` de
+`api/requirements.txt`. `backend/main.py` importa las dependencias pesadas
+dentro de `try/except`, asi que el arranque no se rompe, pero estos dos
+endpoints responden con un mensaje explicito en vez de calcular:
 
+- clustering de accidentes
+- recalculo de puntos negros
+
+El resto de la aplicacion funciona igual. Para tener esos dos endpoints hay
+que desplegar el backend en un host sin ese limite de tamano (Render, Railway,
+Fly) instalando `backend/requirements.txt`, que si incluye scikit-learn y torch.
+
+## Desarrollo local
+
+```powershell
+# Backend
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r api\requirements.txt
+copy backend\.env.example backend\.env    # y rellenar SECRET_KEY
+cd backend
+..\.venv\Scripts\python.exe -m uvicorn main:app --reload --port 8000
+
+# Frontend, en otra terminal
+cd frontend
+npm install --legacy-peer-deps
+npm start
+```
+
+Sin `DATABASE_URL` el backend usa el SQLite local `backend/accidentes.db`.
+
+## Inicializar la base de datos en Neon
+
+```powershell
+$env:DATABASE_URL = "postgresql+psycopg2://..."
+.\.venv\Scripts\python.exe backend\setup_database.py
+```
+
+## Nota de seguridad
+
+El historial de este repositorio se reescribio para eliminar un archivo
+`backend/.env` y un documento que exponian credenciales de Neon. Cualquier
+credencial que haya estado en ese historial debe considerarse comprometida y
+rotarse, aunque ya no aparezca en los commits.

@@ -18,6 +18,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Salida de compilacion: la genera Vercel con buildCommand, no se versiona.
+frontend/build/
+
+# Base de datos local. No debe versionarse: en produccion se usa Neon.
+backend/accidentes.db
+
 # IDE / OS
 .vscode/
 .DS_Store

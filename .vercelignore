@@ -9,3 +9,13 @@ __pycache__/
 .DS_Store
 .vscode/
 .claude/
+
+# La base SQLite es solo para desarrollo local. En Vercel se usa Neon a
+# traves de DATABASE_URL; el sistema de archivos ademas es efimero.
+backend/accidentes.db
+
+# Documentacion y utilidades que no hacen falta en el despliegue
+docs/
+*.bat
+build.sh
+mejoras.txt
