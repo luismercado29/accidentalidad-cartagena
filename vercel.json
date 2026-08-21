@@ -1,8 +1,20 @@
 {
-  "buildCommand": "cd frontend && npm install --legacy-peer-deps && CI=false npm run build",
-  "outputDirectory": "frontend/build",
-  "framework": null,
-  "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": "backend/**" }
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "build" }
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/index.py" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
