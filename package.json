@@ -1,10 +1,57 @@
 {
-  "name": "accidentalidad-cartagena",
-  "version": "1.0.0",
+  "name": "pulso-vial-cartagena",
   "private": true,
-  "description": "Sistema de Analisis de Accidentalidad - Cartagena",
-  "comment": "Este package.json existe para que Vercel monte el build de React en la raiz del despliegue. Si se apunta static-build a frontend/package.json, la salida queda bajo /frontend/ y las rutas absolutas que genera CRA (/static/js/...) dejan de resolver.",
+  "version": "2.0.0",
+  "type": "module",
   "scripts": {
-    "vercel-build": "cd frontend && npm install --legacy-peer-deps && CI=false npm run build"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrar.ts",
+    "db:preparar": "tsx src/db/preparar.ts",
+    "db:reset": "tsx src/db/migrar.ts --reiniciar && tsx src/db/preparar.ts",
+    "vercel-build": "tsx src/db/migrar.ts && tsx src/db/preparar.ts && next build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@gsap/react": "^2.1.2",
+    "ai": "^7.0.127",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.3",
+    "gsap": "^3.15.0",
+    "hls.js": "^1.7.3",
+    "jose": "^6.2.12",
+    "leaflet": "^1.9.4",
+    "leaflet.heat": "^0.2.0",
+    "lenis": "^1.3.26",
+    "lucide-react": "^1.52.0",
+    "next": "^16.3.8",
+    "postgres": "^3.4.9",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "read-excel-file": "^9.3.10",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^26.6.4",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "dotenv": "^18.0.5",
+    "drizzle-kit": "^0.31.11",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
   }
 }

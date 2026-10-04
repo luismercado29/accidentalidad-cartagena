@@ -1,35 +1,32 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-venv/
-.venv/
-
-# Node
-frontend/node_modules/
+# Dependencias
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Salida de compilacion: la genera Vercel con buildCommand, no se versiona.
-frontend/build/
+# Next.js
+.next/
+next-env.d.ts
+out/
+*.tsbuildinfo
 
-# Base de datos local. No debe versionarse: en produccion se usa Neon.
-backend/accidentes.db
+# Variables de entorno y credenciales (nunca se versionan)
+.env
+.env*
+!.env.example
+*.local
+
+# Base de datos local de desarrollo (PGlite)
+.pglite/
+
+# Vercel
+.vercel
+
+# Logs
+*.log
 
 # IDE / OS
 .vscode/
+.idea/
 .DS_Store
+Thumbs.db
 
-
-# Local hidden folders
+# Claude Code
 .claude/
-.vercel
-.env*.local
