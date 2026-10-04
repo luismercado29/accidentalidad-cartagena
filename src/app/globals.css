@@ -1,0 +1,213 @@
+@import "tailwindcss";
+
+/* =========================================================================
+   Pulso Vial · sistema de diseño
+   Base: skill «diseno-editorial-aula» (titulares sans + serif itálica, papel
+   y bandas noche). Tono «campaña o impacto» (F-List): cifras en grotesca
+   condensada y un solo acento amarillo de señal vial sobre negro. Tono
+   «laboratorio» (Reading Stones): anotaciones en monoespaciada tipo plano
+   para coordenadas y datos. Contraste AA en todos los pares de texto.
+   ========================================================================= */
+
+@theme {
+  --font-sans: var(--fuente-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--fuente-serif), ui-serif, Georgia, serif;
+  --font-cifra: var(--fuente-cifra), "Arial Narrow", sans-serif;
+  --font-mono: var(--fuente-mono), ui-monospace, monospace;
+
+  --color-tinta: #14121F;
+  --color-tinta-2: #4A475C;      /* 8.6:1 sobre blanco */
+  --color-tinta-3: #6B6880;      /* 5.1:1 */
+  --color-papel: #FBFAF7;
+  --color-superficie: #FFFFFF;
+  --color-hundido: #F3F1EC;      /* fondos de tabla y zonas secundarias */
+  --color-borde: #E6E3DC;
+  --color-borde-fuerte: #CFCBC1;
+
+  --color-marca: #2437C7;        /* azul de señalización: 8.1:1 con blanco */
+  --color-marca-oscura: #1A2894;
+  --color-marca-suave: #EBEEFF;
+  --color-senal: #FFC21A;        /* amarillo de señal vial: sobre noche o como fondo con tinta */
+  --color-senal-suave: #FFF4D1;
+
+  --color-exito: #15803D;
+  --color-exito-suave: #E9F7EE;
+  --color-aviso: #B45309;
+  --color-aviso-texto: #8A4B06;
+  --color-aviso-suave: #FEF6E7;
+  --color-error: #B42318;
+  --color-error-suave: #FDEDEB;
+  --color-fatal: #7A1010;
+
+  --color-noche: #121019;
+  --color-noche-2: #1C1A26;
+  --color-noche-borde: #2E2B3B;
+
+  --radius-tarjeta: 1rem;
+  --shadow-tarjeta: 0 1px 2px rgb(20 18 31 / 0.05), 0 6px 20px -8px rgb(20 18 31 / 0.12);
+  --shadow-elevada: 0 24px 60px -20px rgb(20 18 31 / 0.35);
+  --ease-salida: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------------------------------------------------------- base */
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 5rem; }
+body {
+  background: var(--color-papel);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3, h4 { line-height: 1.12; letter-spacing: -0.02em; text-wrap: balance; }
+p { text-wrap: pretty; }
+::selection { background: var(--color-senal); color: var(--color-tinta); }
+
+:focus-visible { outline: 3px solid var(--color-marca); outline-offset: 3px; border-radius: 6px; }
+.bg-noche :focus-visible, .sobre-oscuro :focus-visible { outline-color: var(--color-senal); }
+
+.saltar {
+  position: absolute; left: 1rem; top: -100px; z-index: 1000;
+  background: var(--color-senal); color: var(--color-tinta); padding: .75rem 1rem; border-radius: .75rem; font-weight: 700;
+}
+.saltar:focus { top: 1rem; }
+
+/* Palabra destacada del titular en serif itálica. */
+.serif { font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.01em; font-style: italic; }
+
+/* Titular gigante editorial. */
+.titular { font-size: clamp(2.75rem, 7.5vw, 6.25rem); font-weight: 700; letter-spacing: -0.045em; line-height: .94; }
+
+/* Cifras de impacto en grotesca condensada (tono F-List). */
+.cifra { font-family: var(--font-cifra); font-weight: 400; letter-spacing: 0.005em; line-height: .9; font-variant-numeric: tabular-nums; }
+
+/* Anotación técnica tipo plano (tono Reading Stones). */
+.anotacion { font-family: var(--font-mono); font-size: .75rem; letter-spacing: .04em; text-transform: uppercase; }
+
+/* Franja de señalización (amarillo y negro). Siempre decorativa. */
+.franja { background: repeating-linear-gradient(-45deg, var(--color-senal) 0 14px, var(--color-noche) 14px 28px); }
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Los hijos de una rejilla pueden encogerse: evita desbordes por tablas anchas en movil. */
+.grid > * { min-width: 0; }
+/* Los textos .sr-only (posicion absoluta) dentro de tablas desplazables no deben escapar del contenedor. */
+.overflow-x-auto, .overflow-auto, .overflow-y-auto { position: relative; }
+
+/* ---------------------------------------------------------------- componentes */
+@utility contenedor { width: min(1280px, 100% - 2rem); margin-inline: auto; }
+
+@utility boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: 44px; padding: 0 1.15rem; border-radius: 999px; font-weight: 600; font-size: .975rem;
+  transition: background-color .18s, color .18s, transform .18s var(--ease-salida), box-shadow .18s;
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+  &:active { transform: scale(.98); }
+  &:disabled, &[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+}
+@utility boton-primario { background: var(--color-marca); color: #fff; &:hover { background: var(--color-marca-oscura); } }
+@utility boton-senal { background: var(--color-senal); color: var(--color-tinta); &:hover { background: #FFD45C; } }
+@utility boton-secundario {
+  background: var(--color-superficie); color: var(--color-tinta); box-shadow: inset 0 0 0 1.5px var(--color-borde-fuerte);
+  &:hover { box-shadow: inset 0 0 0 1.5px var(--color-tinta); }
+}
+@utility boton-fantasma { background: transparent; color: var(--color-tinta-2); &:hover { background: rgb(20 18 31 / .06); color: var(--color-tinta); } }
+@utility boton-peligro { background: var(--color-error); color: #fff; &:hover { background: #8F1C13; } }
+@utility boton-claro { background: #fff; color: var(--color-noche); &:hover { background: var(--color-senal); } }
+@utility boton-chico { min-height: 36px; padding: 0 .85rem; font-size: .875rem; }
+
+@utility tarjeta {
+  background: var(--color-superficie); border: 1px solid var(--color-borde);
+  border-radius: var(--radius-tarjeta); box-shadow: var(--shadow-tarjeta);
+}
+
+@utility campo {
+  width: 100%; min-height: 44px; padding: .6rem .9rem; border-radius: .7rem;
+  background: #fff; color: var(--color-tinta); border: 1.5px solid var(--color-borde-fuerte); font-size: 1rem;
+  transition: border-color .15s, box-shadow .15s;
+  &::placeholder { color: var(--color-tinta-3); }
+  &:hover { border-color: var(--color-tinta-3); }
+  &:focus { outline: none; border-color: var(--color-marca); box-shadow: 0 0 0 4px rgb(36 55 199 / .18); }
+  &[aria-invalid="true"] { border-color: var(--color-error); }
+}
+
+/* Insignias de estado: siempre con texto, el color solo refuerza. */
+@utility insignia {
+  display: inline-flex; align-items: center; gap: .35rem; padding: .15rem .6rem; border-radius: 999px;
+  font-size: .8125rem; font-weight: 600; white-space: nowrap; line-height: 1.5;
+}
+
+/* Tablas de datos de la consola. */
+.tabla { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .9375rem; }
+.tabla th { text-align: left; font-weight: 600; font-size: .8125rem; color: var(--color-tinta-2); background: var(--color-hundido);
+  padding: .6rem .85rem; border-bottom: 1px solid var(--color-borde); white-space: nowrap; position: sticky; top: 0; }
+.tabla td { padding: .7rem .85rem; border-bottom: 1px solid var(--color-borde); vertical-align: top; }
+.tabla tbody tr:hover td { background: #FAF8F3; }
+.tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Mapas */
+.leaflet-container { font-family: var(--font-sans); background: #E9E6DF; }
+.leaflet-container :focus-visible { outline: 3px solid var(--color-marca); }
+.teselas-claras { filter: grayscale(.85) contrast(.9) brightness(1.06); }
+.teselas-oscuras { filter: invert(1) hue-rotate(180deg) grayscale(.9) brightness(.85) contrast(.9); }
+.leaflet-control-attribution { font-size: 10px !important; background: rgb(255 255 255 / .75) !important; }
+.leaflet-popup-content-wrapper { border-radius: .85rem; box-shadow: var(--shadow-elevada); }
+.leaflet-popup-content { margin: .85rem 1rem; font-size: .9rem; line-height: 1.45; }
+
+/* Elementos que GSAP revela: visibles por defecto si no hay JS o hay movimiento reducido. */
+.js-anim .revelar { opacity: 0; }
+
+/* Cinta de datos (con pausa: WCAG 2.2.2). */
+@keyframes cinta { to { transform: translateX(-50%); } }
+.cinta-pista { display: flex; width: max-content; animation: cinta 50s linear infinite; }
+.cinta[data-pausada="true"] .cinta-pista, .cinta:hover .cinta-pista, .cinta:focus-within .cinta-pista { animation-play-state: paused; }
+
+/* Pulso del indicador "en vivo". */
+@keyframes latido { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.latido { animation: latido 1.6s ease-in-out infinite; }
+
+/* Impresión de informes */
+@media print {
+  .no-imprimir { display: none !important; }
+  body { background: #fff; font-size: 11pt; }
+  .tarjeta { box-shadow: none; break-inside: avoid; }
+  a { text-decoration: none; color: inherit; }
+}
+
+/* =========================================================================
+   Modos de accesibilidad (se aplican en <html> desde el servidor)
+   ========================================================================= */
+html[data-texto="125"] { font-size: 125%; }
+html[data-texto="150"] { font-size: 150%; }
+html[data-texto="175"] { font-size: 175%; }
+html[data-texto="200"] { font-size: 200%; }
+
+html.fuente-legible { --fuente-sans: var(--fuente-legible); --fuente-serif: var(--fuente-legible); --fuente-cifra: var(--fuente-legible); }
+html.fuente-legible .serif { font-style: normal; font-weight: 700; }
+
+html.interlineado-amplio body { line-height: 2; letter-spacing: 0.02em; word-spacing: 0.08em; }
+html.subrayar-enlaces a { text-decoration: underline !important; text-underline-offset: 3px; }
+
+html.alto-contraste {
+  --color-tinta: #000; --color-tinta-2: #000; --color-tinta-3: #1F1F1F;
+  --color-papel: #FFF; --color-hundido: #FFF; --color-borde: #000; --color-borde-fuerte: #000;
+  --color-marca: #1A2894; --color-marca-suave: #FFF;
+  --shadow-tarjeta: none;
+}
+html.alto-contraste .tarjeta { border-width: 2px; }
+html.alto-contraste .boton-secundario { box-shadow: inset 0 0 0 2px #000; }
+
+html.reducir-movimiento *, html.reducir-movimiento *::before, html.reducir-movimiento *::after {
+  animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important; scroll-behavior: auto !important;
+}
+html.reducir-movimiento .cinta-pista, html.reducir-movimiento .latido { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .cinta-pista, .latido { animation: none; }
+}
+
+/* Lenis (scroll suave solo en la portada pública). */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
